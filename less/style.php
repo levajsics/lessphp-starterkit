@@ -1,7 +1,6 @@
 <?php
 
 // http://leafo.net/lessphp/
-
 // This acts as a compiled LESS master file. Refer to this in the HTML.
 // Make sure the cache directory is writeable!
 
@@ -10,38 +9,42 @@ header("Content-type: text/css", true);
 
 require_once 'lessphp/Less.php';
 
-// Site root on server filesystem
-// E.g. "/var/www/mywebsite";
-$path = "/";
+// Directory where this php file is directory
+$path = __DIR__;
 
-// Cache directory path from site root
-// E.g. "/assets/less/lessphp/cache"
-$cache_path = "/less/lessphp/cache";
-
-// Fetch all .less files in directory and compile them in a list of @imports
+// Fetch all .less files in the less directory and compile them in a list of @imports
+// Currently it goes down one level, but can be expanded
+// less/*.less
+// less/*/*.less
 $lessfiles = "";
-foreach ( glob("*.less") as $filename ) {
+foreach ( glob("{less/*.less,less/*/*.less}",GLOB_BRACE) as $filename ) {
 	$lessfiles .= "@import \"$filename\"; \n";
 }
 
-try{
-$options = array(
-	'cache_dir'
-	=>
-	$path.$cache_path
-);
-$parser = new Less_Parser( $options );
-$parser->parse( $lessfiles );
+echo "/* \n" . $lessfiles . "*/ \n \n";
 
-// Parse a LESS file of which path is stored in the "parseFile" array
-$_GET["parseFile"] ? $parser->parseFile( $path . $_GET["parseFile"] ) : false ;
+try {
+	$options = array();
 
-// Parse inline LESS that's stored in the "parse" array
-$_GET["parse"] ? $parser->parse( $_GET["parse"] ) : false ;
+	// ENABLE CACHE
+	//$options = array(
+	//	'cache_dir'
+	//	=>
+	//	$path.'/lessphp/cache'
+	//);
 
-echo $css = $parser->getCss();
-}catch(Exception $e){
-    echo $error_message = $e->getMessage();
+	$parser = new Less_Parser( $options );
+	$parser->parse( $lessfiles );
+
+	// Parse a LESS file of which path is stored in the "parseFile" array
+	// $_GET["parseFile"] ? $parser->parseFile( $path . "/content/" . $_GET["parseFile"] ) : false ;
+
+	// Parse inline LESS that's stored in the "parse" array
+	// $_GET["parse"] ? $parser->parse( $_GET["parse"] ) : false ;
+
+	echo $css = $parser->getCss();
+} catch( Exception $e ) {
+	echo $error_message = $e->getMessage();
 }
 
 ?>
